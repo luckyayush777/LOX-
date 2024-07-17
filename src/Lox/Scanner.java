@@ -88,8 +88,13 @@ class Scanner {
                 while(peek () != '\n' && !isAtEnd())
                     advance();
             }
-            else
-                addToken(SLASH);
+                       else if(match('*'))
+            {
+                while(peek () != '\n' && !isAtEnd())
+                    advance();
+            }
+                        else
+                    addToken(SLASH);
                 break;
             case '"': string();
                 break;
@@ -150,9 +155,9 @@ class Scanner {
         //look for a fraction
         if(peek() == '.' && isDigit(peekNext()))
         {
-            advance();
 
-            while(isDigit(peek())) advance();
+            do advance();
+            while (isDigit(peek()));
         }
 
         addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
@@ -210,10 +215,7 @@ class Scanner {
 
     private boolean isAtEnd()
     {
-        if(current >= source.length())
-            return true;
-        else
-            return false;
+        return current >= source.length();
     }
 
 
