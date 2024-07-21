@@ -11,7 +11,7 @@ abstract class Expr {
     R visitUnaryExpr(Unary expr);
   }
 
-
+  // Nested Expr classes here...
 //> expr-binary
   static class Binary extends Expr {
     Binary(Expr left, Token operator, Expr right) {
@@ -30,7 +30,6 @@ abstract class Expr {
     final Expr right;
   }
 //< expr-binary
-
 //> expr-grouping
   static class Grouping extends Expr {
     Grouping(Expr expression) {
@@ -75,7 +74,6 @@ abstract class Expr {
     final Expr right;
   }
 //< expr-unary
-
 
   abstract <R> R accept(Visitor<R> visitor);
 }
