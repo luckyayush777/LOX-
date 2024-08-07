@@ -1,6 +1,5 @@
 package Lox;
 
-import java.awt.print.PrinterGraphics;
 
 class Interpreter implements Expr.Visitor<Object>{
 
@@ -105,7 +104,7 @@ class Interpreter implements Expr.Visitor<Object>{
 
             case SLASH :
                 checkNumberOperands(expr.operator, left, right);
-
+                checkForDivideByZero(expr.operator, left, right);
                 return (double) left / (double) right;
             case STAR :
                 checkNumberOperands(expr.operator, left, right);
@@ -115,12 +114,16 @@ class Interpreter implements Expr.Visitor<Object>{
 
                 if(left instanceof Double && right instanceof Double){
                 return (double)left + (double)right;
-            }
+                }
 
                 if(left instanceof String && right instanceof String)
                 {
                     return (String)left + (String)right;
                 }
+                if(left instanceof String && right instanceof Double)
+                    return (String)left + stringify(right);
+                if(left instanceof Double && right instanceof String)
+                    return stringify(left) + (String)right;
                 throw new RuntimeError(expr.operator, "Operands " +
                     "must be two numbers or two strings");
 
@@ -132,6 +135,14 @@ class Interpreter implements Expr.Visitor<Object>{
 
         }
             return null;
+    }
+
+
+    private void checkForDivideByZero(Token operator, Object left,
+                                      Object right)
+    {
+        if((double)left == 0.0 || (double)right == 0.0)
+            throw new RuntimeError(operator, "cant divide by zero");
     }
 
 
