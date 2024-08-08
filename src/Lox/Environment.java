@@ -24,7 +24,13 @@ class Environment {
     {
         if(values.containsKey(name.lexeme))
         {
-            return values.get(name.lexeme);
+
+            //a check for accessing unassigned values
+            if(values.get(name.lexeme) != null)
+                return values.get(name.lexeme);
+            else
+                throw new RuntimeError(name, "Trying to access unassigned " +
+                        "value");
         }
 
         if(enclosing != null)
