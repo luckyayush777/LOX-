@@ -102,7 +102,7 @@ class Scanner {
 
             case '\r':
 
-
+            case ' ':
             case '\t':
                 // Ignore whitespace.
                 break;
