@@ -24,13 +24,7 @@ class Environment {
     {
         if(values.containsKey(name.lexeme))
         {
-
-            //a check for accessing unassigned values
-            if(values.get(name.lexeme) != null)
-                return values.get(name.lexeme);
-            else
-                throw new RuntimeError(name, "Trying to access unassigned " +
-                        "value");
+            return values.get(name.lexeme);
         }
 
         if(enclosing != null)
@@ -48,8 +42,9 @@ class Environment {
 
     void assign(Token name, Object value)
     {
-        if(values.containsKey(name.lexeme))
-        {
+        if(values.containsKey(name.lexeme)) {
+            //System.out.println("Debug: Environment assigning "
+                    //+ name.lexeme + " = " + value);
             values.put(name.lexeme, value);
             return;
         }

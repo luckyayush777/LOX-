@@ -25,6 +25,24 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     }
 
     @Override
+    public Object visitLogicalExpr(Expr.Logical expr)
+    {
+        Object left = evaluate(expr.left);
+        if(expr.operator.type == TokenType.OR) {
+            if (isTruth(left))
+                return left;
+        }
+        else
+        {
+            if(!isTruth(left))
+                return left;
+        }
+        return evaluate(expr.right);
+
+
+    }
+
+    @Override
     public Object visitGroupingExpr(Expr.Grouping expr)
     {
         return evaluate(expr.expression);
@@ -70,6 +88,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     }
 
     @Override
+    public Void visitIfStmt(Stmt.If stmt)
+    {
+        if(isTruth(evaluate(stmt.condition)))
+        {
+            execute(stmt.thenBranch);
+        } else if(stmt.elseBranch != null)
+        {
+            execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
+
+    @Override
     public Void visitPrintStmt(Stmt.Print stmt)
     {
         Object value = evaluate(stmt.expression);
@@ -91,8 +123,22 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     }
 
     @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        //System.out.println("Debug: Entering while loop");
+        while(isTruth(evaluate(stmt.condition))) {
+            //System.out.println("Debug: Condition true, executing body");
+            execute(stmt.body);
+            //System.out.println("Debug: Finished executing body");
+        }
+        //System.out.println("Debug: Exited while loop");
+
+        return null;
+    }
+
+    @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
+        //System.out.println("Debug: Assigning " + expr.name.lexeme + " = " + value);
         environment.assign(expr.name, value);
         return value;
     }
@@ -155,6 +201,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
         Object right = evaluate(expr.right);
 
         switch (expr.operator.type) {
+            case BANG_EQUAL : return !isEqual(left, right);
+
+            case EQUAL_EQUAL : return isEqual(left, right);
 
             case GREATER:
                 checkNumberOperands(expr.operator, left, right);
@@ -164,7 +213,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
                 return (double)left >= (double)right;
             case LESS:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left < (double)right;
+                return  (double)left < (double)right;
             case LESS_EQUAL:
                 checkNumberOperands(expr.operator, left, right);
                 return (double)left <= (double)right;
@@ -184,21 +233,21 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
             case STAR :
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left * (double) right;
-            case PLUS :
+            case PLUS:
+                if (left instanceof Double && right instanceof Double) {
+                    //double addSum = (double)left + (double)right;
+                    /*System.out.println("Debug: Binary + operation: "
+                            + left + " + " + right + " = "
+                            + addSum);
 
-                if(left instanceof Double && right instanceof Double){
-                return (double)left + (double)right;
+                     */
+                    return   (double)left + (double)right;
+
                 }
-
                 if(left instanceof String && right instanceof String)
                 {
                     return (String)left + (String)right;
                 }
-
-                if(left instanceof String && right instanceof Double)
-                    return (String)left + stringify(right);
-                if(left instanceof Double && right instanceof String)
-                    return stringify(left) + (String)right;
 
 
                 throw new RuntimeError(expr.operator, "Operands " +
@@ -207,9 +256,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 
 
-            case BANG_EQUAL : return !isEqual(left, right);
 
-            case EQUAL_EQUAL : return isEqual(left, right);
             default:
                 return null;
 

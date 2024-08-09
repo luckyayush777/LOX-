@@ -6,9 +6,11 @@ import java.util.List;
 abstract class Stmt {
   interface Visitor<R> {
     R visitExpressionStmt(Expression stmt);
+    R visitIfStmt(If stmt);
     R visitBlockStmt(Block stmt);
     R visitPrintStmt(Print stmt);
     R visitVarStmt(Var stmt);
+    R visitWhileStmt(While stmt);
   }
 
   // Nested Stmt classes here...
@@ -26,6 +28,24 @@ abstract class Stmt {
     final Expr expression;
   }
 //< stmt-expression
+//> stmt-if
+  static class If extends Stmt {
+    If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitIfStmt(this);
+    }
+
+    final Expr condition;
+    final Stmt thenBranch;
+    final Stmt elseBranch;
+  }
+//< stmt-if
 //> stmt-block
   static class Block extends Stmt {
     Block(List<Stmt> statements) {
@@ -70,6 +90,22 @@ abstract class Stmt {
     final Expr initializer;
   }
 //< stmt-var
+//> stmt-while
+  static class While extends Stmt {
+    While(Expr condition, Stmt body) {
+      this.condition = condition;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitWhileStmt(this);
+    }
+
+    final Expr condition;
+    final Stmt body;
+  }
+//< stmt-while
 
   abstract <R> R accept(Visitor<R> visitor);
 }
