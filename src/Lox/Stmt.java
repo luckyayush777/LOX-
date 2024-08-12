@@ -6,6 +6,7 @@ import java.util.List;
 abstract class Stmt {
   interface Visitor<R> {
     R visitExpressionStmt(Expression stmt);
+    R visitFunctionStmt(Function stmt);
     R visitIfStmt(If stmt);
     R visitBlockStmt(Block stmt);
     R visitPrintStmt(Print stmt);
@@ -28,6 +29,24 @@ abstract class Stmt {
     final Expr expression;
   }
 //< stmt-expression
+//> stmt-function
+  static class Function extends Stmt {
+    Function(Token name, List<Token> params, List<Stmt> body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionStmt(this);
+    }
+
+    final Token name;
+    final List<Token> params;
+    final List<Stmt> body;
+  }
+//< stmt-function
 //> stmt-if
   static class If extends Stmt {
     If(Expr condition, Stmt thenBranch, Stmt elseBranch) {

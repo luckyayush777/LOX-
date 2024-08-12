@@ -23,6 +23,7 @@ class Parser {
     private Stmt declaration()
     {
         try{
+            if(match(FUN)) return function("function");
             if(match(VAR)) return varDeclaration();
 
             return statement();
@@ -32,6 +33,38 @@ class Parser {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt function(String kind) {
+    Token name = consume(IDENTIFIER, "Expect " + kind +
+            "name.");
+    consume(LEFT_PARENTHESIS, "Expect '(' after "+
+            kind + " name.");
+    List<Token> parameters = new ArrayList<>();
+    if(!check(RIGHT_PARENTHESIS))
+    {
+        do{
+            if(parameters.size() >= 255)
+            {
+                error(peek(), "Cant have more than" +
+                        "255 characters");
+            }
+
+            parameters.add(consume(IDENTIFIER, "Expect"
+            + "parameter name."));
+
+        }while (match(COMMA));
+
+    }
+    consume(RIGHT_PARENTHESIS, "Expect ')' after" +
+            "parameters.");
+
+    consume(LEFT_BRACE, "Expect '{' before " +
+            kind + "body.");
+    List<Stmt> body  = block();
+    return new Stmt.Function(name, parameters, body);
+
+
     }
 
     private Stmt statement()
@@ -183,7 +216,7 @@ class Parser {
                 return new Expr.Assign(name, value);
             }
 
-            error(equals, "Invalid Assignment Target.");
+            throw error(equals, "Invalid Assignment Target.");
         }
 
         return expr;
@@ -278,8 +311,47 @@ class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
     }
+
+    private Expr finishCall(Expr callee)
+    {
+        List<Expr> arguments = new ArrayList<>();
+        if(!check(RIGHT_PARENTHESIS))
+        {
+            do{
+                if(arguments.size() >= 255)
+                {
+                    error(peek(), "Cant have more than 255 arguments.");
+                }
+                arguments.add(expression());
+            }while(match(COMMA));
+        }
+
+        Token paren = consume(RIGHT_PARENTHESIS,
+                "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, arguments);
+    }
+
+    private Expr call()
+    {
+        Expr expr = primary();
+        while(true)
+        {
+            if(match(LEFT_PARENTHESIS))
+            {
+                expr = finishCall(expr);
+            }
+            else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+
 
     private Expr primary()
     {
